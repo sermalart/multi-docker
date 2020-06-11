@@ -1,0 +1,26 @@
+language: generic
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t sermalart/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true sermalart/react-test npm test
+
+after_success:
+  - docker build -t sermalart/multi-client ./client
+  - docker build -t sermalart/multi-nginx ./nginx
+  - docker build -t sermalart/multi-api ./api
+  - docker build -t sermalart/multi-worker ./worker
+  # Log in Docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Push images to Docker Hub
+  - docker push sermalart/multi-client
+  - docker push sermalart/multi-nginx
+  - docker push sermalart/multi-api
+  - docker push sermalart/multi-worker
+  
+
+
